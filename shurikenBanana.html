@@ -1,0 +1,113 @@
+<html>
+  <head>
+    <script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
+    <script>
+
+      var stage;
+      var heroe;
+
+      var KEYCODE_LEFT = 37, 
+		KEYCODE_RIGHT = 39,
+		KEYCODE_UP = 38, 
+		KEYCODE_DOWN = 40,
+		KEYCODE_SPACE = 32;
+          
+      function init() {
+        stage = new createjs.Stage("demoCanvas");
+        var circle = new createjs.Shape();
+        heroe = new createjs.Bitmap("assets/images/monkey.gif")
+
+        circle.graphics.beginFill("DeepSkyBlue").drawCircle(0, 0, 50);
+        circle.x = 100;
+        circle.y = 100;
+        //stage.addChild(circle);
+
+        heroe.regX = 100;
+        heroe.regY = 81;
+
+        heroe.x = 300;
+        heroe.y = 350;
+		heroe.bananas = []
+
+        stage.addChild(heroe);
+        stage.update();
+
+        this.document.onkeydown = keyPressed;
+
+        this.document.onclick = onClick;
+
+        createjs.Ticker.addEventListener("tick", handleTick)
+
+      }
+
+      function onClick(event){
+		fireBanana()
+	  }
+
+	  function fireBanana(){
+
+      	var banana = new createjs.Bitmap("assets/images/banana.png")
+      	banana.x = heroe.x;
+      	banana.y = heroe.y;
+
+        banana.regX = 130 / 2;
+        banana.regY = 61 / 2;
+        banana.direction = heroe.rotation;
+
+      	heroe.bananas.push(banana);
+
+      	stage.addChild(banana);
+	   	stage.update()
+
+	  }
+
+      function handleTick(event) {
+           //heroe.x += 1;
+           //stage.update();
+           heroe.bananas.forEach(function(banana,idex){
+           		banana.rotation+=30;
+
+				banana.x += Math.cos(banana.direction) * 30;
+				banana.y -= Math.sin(banana.direction) * 30;
+
+				if(banana.x < 0 | banana.x > stage.canvas.width | banana.y < 0 | banana.y > stage.canvas.height){
+					stage.removeChild(banana);
+				}
+
+           })
+
+           stage.update();
+       }
+
+      function keyPressed(event) {
+
+          switch(event.keyCode) {
+              case KEYCODE_LEFT:	
+                  heroe.x -= 5;
+                  heroe.rotation=0;
+                  break;
+              case KEYCODE_RIGHT: 
+                  heroe.x += 5;
+                  heroe.rotation=180;
+                  break;
+              case KEYCODE_UP: 
+                  heroe.y -= 5;
+                  heroe.rotation=90;
+                  break;
+              case KEYCODE_DOWN: 
+                  heroe.y += 5;
+                  heroe.rotation=270;
+                  break;
+              case KEYCODE_SPACE:
+              	  fireBanana();
+              	  break;
+          }
+          stage.update();
+      }
+
+    </script>
+  </head>
+  <body onload="init();">
+    <canvas id="demoCanvas" width="600" height="700" style="background-image:url(assets/images/background.jpg)"></canvas>
+  </body>
+</html>
