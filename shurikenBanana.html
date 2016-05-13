@@ -5,6 +5,7 @@
 
       var stage;
       var heroe;
+      var oldX, oldY;
 
       var KEYCODE_LEFT = 37, 
 		KEYCODE_RIGHT = 39,
@@ -22,7 +23,7 @@
         circle.y = 100;
         //stage.addChild(circle);
 
-        heroe.regX = 100;
+        heroe.regX = 80;
         heroe.regY = 81;
 
         heroe.x = 300;
@@ -37,6 +38,16 @@
         this.document.onclick = onClick;
 
         createjs.Ticker.addEventListener("tick", handleTick)
+
+        stage.on("stagemousemove", function(event){
+        	if(oldX) {
+        		var angle = findAngle(event.stageX,event.stageY)
+        		heroe.rotation = angle;
+        		console.log(angle)
+        	}
+        	oldX = event.stageX;
+        	oldY = event.stageY;
+        })
 
       }
 
@@ -67,8 +78,10 @@
            heroe.bananas.forEach(function(banana,idex){
            		banana.rotation+=30;
 
-				banana.x += Math.cos(banana.direction) * 30;
-				banana.y -= Math.sin(banana.direction) * 30;
+				banana.x += Math.sin(banana.direction) * 30;
+				banana.y -= Math.cos(banana.direction) * 30;
+
+//				console.log(banana.direction)
 
 				if(banana.x < 0 | banana.x > stage.canvas.width | banana.y < 0 | banana.y > stage.canvas.height){
 					stage.removeChild(banana);
@@ -80,7 +93,7 @@
        }
 
       function keyPressed(event) {
-
+		  //heroe.setTransform(100, 100, 2, 2);
           switch(event.keyCode) {
               case KEYCODE_LEFT:	
                   heroe.x -= 5;
@@ -103,6 +116,16 @@
               	  break;
           }
           stage.update();
+      }
+
+      function findAngle(mouseX, mouseY){
+
+		// angle in degrees
+		var angle = Math.atan2(heroe.y - mouseY, heroe.x - mouseX) * 180 / Math.PI;
+		if(angle < 0)
+			angle = 360 + angle;
+
+		return angle;
       }
 
     </script>
