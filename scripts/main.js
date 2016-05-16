@@ -1,61 +1,72 @@
-var stage;
-var heroe;
-var oldX, oldY;
-var angleLabel;
-var line;
+var stage,
+	world,
+	hero,
+	oldX, oldY,
+	angleLabel,
+	line,
+	stageWidth,
+	stageHeight,
+	backgroundPath = "assets/images/background.jpg",
+	heroPath = "assets/images/monkey.gif",
+	bananaPath = "assets/images/banana.png",
+	image,
+	back;
 
 var KEYCODE_LEFT = 37, 
 	KEYCODE_RIGHT = 39,
 	KEYCODE_UP = 38, 
 	KEYCODE_DOWN = 40,
 	KEYCODE_SPACE = 32,
-	STAGE_WIDTH = 600,
-	STAGE_HEIGHT = 700,
 	SPIN_SPEED = 60,
-	HERO_SPEED = 30;
+	HERO_SPEED = 30,
+	WORLD_HEIGTH = 800,
+	WORLD_WIDTH = 800;
           
 function init() {
 
-	 stage = new createjs.Stage("demoCanvas");
-	 stage.regX = -STAGE_WIDTH/2
-	 stage.regY = -STAGE_HEIGHT/2
+	stage = new createjs.Stage("demoCanvas");
 
-	 var circle = new createjs.Shape();
-	 heroe = new createjs.Bitmap("assets/images/monkey.gif")
+	setupStage()
 
-	 heroe.regX = 80;
-	 heroe.regY = 81;
+	window.addEventListener('resize', resize, false);
 
-	 heroe.x = 0;
-	 heroe.y = 0;
+	hero = new createjs.Bitmap(heroPath)
 
-	 heroe.bananas = []
+	hero.regX = 80;
+	hero.regY = 81;
 
-	 stage.addChild(heroe);
-	 stage.update();
+	hero.x = 0;
+	hero.y = 0;
 
-	 angleLabel = new createjs.Text("Hello World", "15px Arial", "#ccc");
-	 angleLabel.x = - stage.canvas.width / 2 + 10;
-	 angleLabel.y = stage.canvas.height / 2 - 10;
-	 angleLabel.textBaseline = "alphabetic";
-	 stage.addChild(angleLabel)
+	hero.bananas = []
+	//world.addChild(hero)
+	stage.addChild(hero);
+	stage.update();
 
-	 this.document.onkeydown = keyPressed;
-	 this.document.onclick = onClick;
+	/*****
+	angleLabel = new createjs.Text("Hello World", "15px Arial", "#ccc");
+	angleLabel.x = - stage.canvas.width / 2 + 10;
+	angleLabel.y = stage.canvas.height / 2 - 10;
+	angleLabel.textBaseline = "alphabetic";
+	stage.addChild(angleLabel)
+	***/
 
-	 createjs.Ticker.addEventListener("tick", handleTick)
+	this.document.onkeydown = keyPressed;
+	this.document.onclick = onClick;
 
-	 stage.on("stagemousemove", function(event){
+	createjs.Ticker.addEventListener("tick", handleTick)
 
-		 if(oldX) {
-			 var angle = findAngle(event.stageX - STAGE_WIDTH/2, event.stageY - STAGE_HEIGHT/2)
-			 heroe.rotation = angle;
-			 //console.log(angle)
-		 }
+	stage.on("stagemousemove", function(event){
 
-		 oldX = event.stageX;
-		 oldY = event.stageY;
-	 })
+		if(oldX) {
+			var angle = findAngle(event.stageX - stageWidth/2, event.stageY - stageHeight/2)
+			hero.rotation = angle;
+			//console.log(angle)
+		}
+
+		oldX = event.stageX;
+		oldY = event.stageY;
+	})
 
 }
 
@@ -67,15 +78,15 @@ function onClick(event){
 
 function fireBanana(){
 
-	var banana = new createjs.Bitmap("assets/images/banana.png")
-	banana.x = heroe.x;
-	banana.y = heroe.y;
+	var banana = new createjs.Bitmap(bananaPath)
+	banana.x = hero.x;
+	banana.y = hero.y;
 
 	banana.regX = 130 / 2;
 	banana.regY = 61 / 2;
-	banana.direction = heroe.rotation;
+	banana.direction = hero.rotation;
 
-	heroe.bananas.push(banana);
+	hero.bananas.push(banana);
 
 	stage.addChild(banana);
 
@@ -88,10 +99,10 @@ function fireBanana(){
 		.wait(300)
 		.to({alpha:0,visible:false},1000)
 		.call(function(data){
-			var i = heroe.bananas.indexOf(data.target);
+			var i = hero.bananas.indexOf(data.target);
 			
 			if(i > -1){
-				heroe.bananas.splice(i,1);
+				hero.bananas.splice(i,1);
 			}
 
 			stage.removeChild(banana);
@@ -103,9 +114,9 @@ function fireBanana(){
 }
 
 function handleTick(event) {
-	//heroe.x += 1;
+	//hero.x += 1;
 	//stage.update();
-	heroe.bananas.forEach(function(banana,idex){
+	hero.bananas.forEach(function(banana,idex){
 		banana.rotation += SPIN_SPEED;
 	})
 
@@ -116,20 +127,24 @@ function keyPressed(event) {
 
     switch(event.keyCode) {
         case KEYCODE_LEFT:	
-            heroe.x -= HERO_SPEED;
-            heroe.rotation=0;
+            stage.regX += HERO_SPEED;
+            hero.x -= HERO_SPEED;
+            hero.rotation=0;
             break;
         case KEYCODE_RIGHT: 
-            heroe.x += HERO_SPEED;
-            heroe.rotation=180;
+            stage.regX -= HERO_SPEED;
+            hero.x += HERO_SPEED;
+            hero.rotation=180;
             break;
         case KEYCODE_UP: 
-            heroe.y -= HERO_SPEED;
-            heroe.rotation=90;
+            stage.regY += HERO_SPEED;
+            hero.Y -= HERO_SPEED;
+            hero.rotation=90;
             break;
         case KEYCODE_DOWN: 
-            heroe.y += HERO_SPEED;
-            heroe.rotation=270;
+            stage.regY -= HERO_SPEED;
+            hero.Y += HERO_SPEED;
+            hero.rotation=270;
             break;
         case KEYCODE_SPACE:
         	  fireBanana();
@@ -142,13 +157,13 @@ function keyPressed(event) {
 function findAngle(mouseX, mouseY){
 
 	// angle in degrees
-	var angle =  Math.atan2(heroe.y - mouseY, heroe.x - mouseX) * 180 / Math.PI;
+	var angle =  Math.atan2(hero.y - mouseY, hero.x - mouseX) * 180 / Math.PI;
 
 	if(angle < 0)
 		angle = 360 + angle;
 
-	angleLabel.text = "hero.x:"+ heroe.x + " hero.y:" + heroe.y + " Angle:" + Number((angle).toFixed(2))
-					+ " mouseX:" + mouseX + " mouseY:" + mouseY;
+	//angleLabel.text = "hero.x:"+ hero.x + " hero.y:" + hero.y + " Angle:" + Number((angle).toFixed(2))
+	//				+ " mouseX:" + mouseX + " mouseY:" + mouseY;
 
 	stage.removeChild(line);
 	line = new createjs.Shape();
@@ -157,12 +172,22 @@ function findAngle(mouseX, mouseY){
 
 	color = createjs.Graphics.getRGB(0xFFFFFF * Math.random(), 1);
 	line.graphics.beginStroke(color);
-	line.graphics.moveTo(heroe.x, heroe.y);
+	line.graphics.moveTo(hero.x, hero.y);
 	line.graphics.lineTo(mouseX, mouseY);
 	line.graphics.endStroke();
 
   	return angle;
 }
+
+function resize() {
+
+	stageWidth = stage.canvas.width = window.innerWidth;
+	stageHeight = stage.canvas.height = window.innerHeight;
+	stage.regX = - stageWidth / 2
+	stage.regY = - stageHeight / 2
+
+}
+
 
 Math.radians = function(degrees) {
 	return degrees * Math.PI / 180;
@@ -171,3 +196,36 @@ Math.radians = function(degrees) {
 Math.degrees = function(radians) {
 	return radians * 180 / Math.PI;
 };
+
+function setupStage(){
+	resize();
+
+	world = new createjs.Container();
+	world.x = - stageWidth / 2
+	world.y = - stageHeight / 2
+	world.width = WORLD_WIDTH;
+	world.height = WORLD_HEIGTH;
+	world.regX = - WORLD_HEIGTH / 2;
+	world.regY = - WORLD_WIDTH / 2;
+
+	stage.addChild(world)
+
+	image = new Image();
+	image.src = backgroundPath;
+	image.onload = function() {
+
+		back = new createjs.Shape();
+		back.graphics.clear().beginBitmapFill(image,"repeat")
+			.drawRect(0,0,WORLD_WIDTH,WORLD_WIDTH)
+
+		back.x = 0;
+		back.y = 0;
+
+		world.addChild(back);
+		//stage.update();
+	}
+
+
+	stage.update();
+
+}
